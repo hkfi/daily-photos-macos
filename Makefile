@@ -1,4 +1,4 @@
-.PHONY: build install run uninstall clean
+.PHONY: build install run uninstall clean release
 
 APP_NAME   := DailyPhotos
 BUILD_DIR  := .build
@@ -27,3 +27,13 @@ uninstall:
 clean:
 	@rm -rf $(BUILD_DIR) $(APP_NAME).xcodeproj
 	@echo "🧹 Cleaned build artifacts"
+
+release:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Usage: make release VERSION=0.2.0"; \
+		exit 1; \
+	fi
+	@echo "🏷  Tagging v$(VERSION)..."
+	@git tag "v$(VERSION)"
+	@git push origin "v$(VERSION)"
+	@echo "✅ Pushed tag v$(VERSION) — GitHub Actions will build and create the release"

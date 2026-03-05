@@ -88,9 +88,54 @@ struct SettingsView: View {
             } header: {
                 Text("Status")
             }
+
+            // ── About ──
+            Section {
+                HStack {
+                    Text("Version")
+                    Spacer()
+                    Text(appState.updater.currentVersion)
+                        .foregroundColor(.secondary)
+                }
+
+                HStack {
+                    if appState.updater.updateAvailable, let version = appState.updater.latestVersion {
+                        Label("v\(version) available", systemImage: "arrow.down.circle.fill")
+                            .foregroundColor(.orange)
+                        Spacer()
+                        if appState.updater.isUpdating {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                        } else {
+                            Button("Install & Relaunch") {
+                                Task { await appState.updater.downloadAndInstall() }
+                            }
+                        }
+                    } else {
+                        Text("Updates")
+                        Spacer()
+                        if appState.updater.isChecking {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                        } else {
+                            Button("Check for Updates") {
+                                Task { await appState.updater.checkForUpdates() }
+                            }
+                        }
+                    }
+                }
+
+                if let error = appState.updater.updateError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            } header: {
+                Text("About")
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 440)
+        .frame(width: 400, height: 540)
     }
 
     private func chooseVaultFolder() {

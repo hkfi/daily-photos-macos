@@ -45,9 +45,10 @@ class AppState: ObservableObject {
     // ── Internal ──
     let importer = PhotoImporter()
     let tracker = ImportTracker()
+    let updater = Updater()
     private var timer: Timer?
 
-    // ── Bookmarks (for sandboxed file access) ──
+    // ── Bookmarks (for folder access) ──
     @Published var hasVaultAccess: Bool = false
 
     init() {
@@ -66,6 +67,8 @@ class AppState: ObservableObject {
         if autoImportEnabled {
             startTimer()
         }
+
+        updater.startPeriodicChecks()
     }
 
     // ────────────────────────────────────────────

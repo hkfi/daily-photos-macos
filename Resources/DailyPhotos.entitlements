@@ -2,20 +2,5 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- App Sandbox (required for Mac App Store, recommended otherwise) -->
-    <key>com.apple.security.app-sandbox</key>
-    <true/>
-
-    <!-- Read-only access to Photos library via PhotoKit -->
-    <key>com.apple.security.personal-information.photos-library</key>
-    <true/>
-
-    <!-- User-selected file access (NSOpenPanel for vault folder) -->
-    <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
-
-    <!-- Bookmarks (persist vault folder access across launches) -->
-    <key>com.apple.security.files.bookmarks.app-scope</key>
-    <true/>
 </dict>
 </plist>

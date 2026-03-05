@@ -20,7 +20,9 @@ struct DailyPhotosApp: App {
                     }
                 }
         } label: {
-            Label("Daily Photos", systemImage: appState.isImporting ? "arrow.down.circle" : "photo.on.rectangle")
+            Label("Daily Photos", systemImage: appState.updater.updateAvailable
+                  ? "arrow.down.circle.fill"
+                  : appState.isImporting ? "arrow.down.circle" : "photo.on.rectangle")
         }
         .menuBarExtraStyle(.window)
 
