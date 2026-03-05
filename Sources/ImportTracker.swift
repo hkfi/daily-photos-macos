@@ -40,8 +40,10 @@ class ImportTracker {
     // ── Persistence ──
 
     private func load() {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
         guard let data = try? Data(contentsOf: storageURL),
-              let decoded = try? JSONDecoder().decode([String: ImportRecord].self, from: data) else {
+              let decoded = try? decoder.decode([String: ImportRecord].self, from: data) else {
             return
         }
         records = decoded

@@ -5,6 +5,7 @@ import SwiftUI
 
 struct MenuBarView: View {
     @EnvironmentObject var appState: AppState
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -125,7 +126,7 @@ struct MenuBarView: View {
 
                 // Settings
                 Button {
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                    openSettings()
                     NSApp.activate(ignoringOtherApps: true)
                 } label: {
                     HStack {
