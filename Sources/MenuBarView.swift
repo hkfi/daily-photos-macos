@@ -124,7 +124,10 @@ struct MenuBarView: View {
                 Divider()
 
                 // Settings
-                SettingsLink {
+                Button {
+                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
                     HStack {
                         Image(systemName: "gear")
                         Text("Settings…")
