@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Run as a background agent (no Dock icon) -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- Photo Library access prompt message -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Daily Photos needs access to your photo library to import today's photos into your Obsidian vault.</string>
+
+    <!-- Add to Photos (not needed, but required by some macOS versions) -->
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Daily Photos does not modify your photo library.</string>
+
+    <!-- User-selected folder access (for vault path via NSOpenPanel) -->
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>Daily Photos needs access to your Obsidian vault folder to save imported photos.</string>
+
+    <!-- App transport security — not needed but good practice -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+    </dict>
+
+    <!-- Bundle identifiers -->
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleName</key>
+    <string>Daily Photos</string>
+    <key>CFBundleDisplayName</key>
+    <string>Daily Photos</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+</dict>
+</plist>

@@ -1,0 +1,22 @@
+name: DailyPhotos
+options:
+  bundleIdPrefix: com.hiroki
+  deploymentTarget:
+    macOS: "14.0"
+
+targets:
+  DailyPhotos:
+    type: application
+    platform: macOS
+    sources:
+      - Sources
+    settings:
+      base:
+        INFOPLIST_FILE: Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Resources/DailyPhotos.entitlements
+        CODE_SIGN_IDENTITY: "-"
+        PRODUCT_BUNDLE_IDENTIFIER: com.hiroki.daily-photos
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
