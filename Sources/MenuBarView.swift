@@ -87,6 +87,49 @@ struct MenuBarView: View {
                 Divider()
             }
 
+            // ── Update banner ──
+            if appState.updater.updateAvailable, let version = appState.updater.latestVersion {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .foregroundColor(.orange)
+                        Text("Update available: v\(version)")
+                            .font(.callout)
+                            .fontWeight(.medium)
+                        Spacer()
+                    }
+
+                    if appState.updater.isUpdating {
+                        HStack(spacing: 6) {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                            Text("Installing update…")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        Button {
+                            Task { await appState.updater.downloadAndInstall() }
+                        } label: {
+                            Text("Install & Relaunch")
+                                .font(.callout)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .controlSize(.small)
+                    }
+
+                    if let error = appState.updater.updateError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+
+                Divider()
+            }
+
             // ── Actions ──
             VStack(spacing: 2) {
                 // Import now button
@@ -121,6 +164,23 @@ struct MenuBarView: View {
                     .padding(.horizontal, 16)
                 }
                 .buttonStyle(.plain)
+
+                // Check for updates
+                if !appState.updater.updateAvailable {
+                    Button {
+                        Task { await appState.updater.checkForUpdates() }
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                            Text(appState.updater.isChecking ? "Checking…" : "Check for Updates")
+                            Spacer()
+                        }
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 16)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(appState.updater.isChecking)
+                }
 
                 Divider()
 
