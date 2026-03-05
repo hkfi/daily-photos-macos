@@ -41,6 +41,7 @@ struct SettingsView: View {
             // ── Import behavior ──
             Section {
                 Toggle("Auto-import", isOn: $appState.autoImportEnabled)
+                    .tint(.accentColor)
 
                 if appState.autoImportEnabled {
                     Picker("Check every", selection: $appState.intervalMinutes) {
@@ -53,6 +54,7 @@ struct SettingsView: View {
                 }
 
                 Toggle("Convert HEIC → JPEG", isOn: $appState.convertToJpeg)
+                    .tint(.accentColor)
             } header: {
                 Text("Import behavior")
             }
@@ -60,6 +62,7 @@ struct SettingsView: View {
             // ── Daily note ──
             Section {
                 Toggle("Append to daily note", isOn: $appState.appendToDailyNote)
+                    .tint(.accentColor)
 
                 if appState.appendToDailyNote {
                     TextField("Notes subfolder", text: $appState.dailyNotesSubfolder)
