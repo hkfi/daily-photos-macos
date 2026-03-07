@@ -13,12 +13,22 @@ A macOS menu bar app that automatically imports photos from your Apple Photos li
 - **iCloud support** — Downloads photos from iCloud when needed
 - **Auto-update** — Checks GitHub for new releases and can update itself in-place
 
+## Download
+
+Grab the latest release — no build tools needed:
+
+**[⬇ Download DailyPhotos.app](https://github.com/hkfi/daily-photos-macos/releases/latest)**
+
+Unzip and move `DailyPhotos.app` to your Applications folder.
+
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Xcode Command Line Tools (`xcode-select --install`)
 
-## Install
+### Building from source
+
+Additionally requires:
+- Xcode Command Line Tools (`xcode-select --install`)
 
 ```bash
 git clone https://github.com/hkfi/daily-photos-macos.git
