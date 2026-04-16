@@ -14,6 +14,8 @@ APP_NAME="DailyPhotos"
 BUILD_DIR=".build"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
 INSTALL_DIR="$HOME/Applications"
+MODULE_CACHE_DIR="$(pwd)/$BUILD_DIR/module-cache"
+ARCH="$(uname -m)"
 
 echo "🔧 Building $APP_NAME..."
 
@@ -37,6 +39,7 @@ if command -v xcodegen &>/dev/null; then
         -configuration Release \
         -derivedDataPath "$BUILD_DIR/derived" \
         -quiet \
+        CLANG_MODULE_CACHE_PATH="$MODULE_CACHE_DIR" \
         CODE_SIGN_IDENTITY="-" \
         CODE_SIGNING_ALLOWED=YES
 
@@ -57,11 +60,21 @@ else
 
     mkdir -p "$BUILD_DIR"
 
+    case "$ARCH" in
+        arm64) TARGET_TRIPLE="arm64-apple-macos14.0" ;;
+        x86_64) TARGET_TRIPLE="x86_64-apple-macos14.0" ;;
+        *)
+            echo "❌ Unsupported architecture: $ARCH"
+            exit 1
+            ;;
+    esac
+
     swiftc \
         "${SOURCES[@]}" \
         -o "$BINARY" \
-        -target arm64-apple-macos14.0 \
+        -target "$TARGET_TRIPLE" \
         -sdk "$(xcrun --show-sdk-path)" \
+        -module-cache-path "$MODULE_CACHE_DIR" \
         -framework SwiftUI \
         -framework Photos \
         -framework AppKit \

@@ -4,20 +4,14 @@ import SwiftUI
 struct DailyPhotosApp: App {
     @StateObject private var appState = AppState()
     @Environment(\.openSettings) private var openSettings
+    @State private var hasOpenedInitialSettings = false
 
     var body: some Scene {
-        // ── Menu bar icon + popover ──
         MenuBarExtra {
             MenuBarView()
                 .environmentObject(appState)
                 .onAppear {
-                    // First launch: open settings so the user picks a vault folder
-                    if appState.vaultPath.isEmpty {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            openSettings()
-                            NSApp.activate(ignoringOtherApps: true)
-                        }
-                    }
+                    openSettingsIfNeeded()
                 }
         } label: {
             Label("Daily Photos", systemImage: appState.updater.updateAvailable
@@ -26,10 +20,19 @@ struct DailyPhotosApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        // ── Settings window ──
         Settings {
             SettingsView()
                 .environmentObject(appState)
+        }
+    }
+
+    private func openSettingsIfNeeded() {
+        guard !hasOpenedInitialSettings, appState.vaultPath.isEmpty else { return }
+
+        hasOpenedInitialSettings = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            openSettings()
+            NSApp.activate(ignoringOtherApps: true)
         }
     }
 }

@@ -82,7 +82,7 @@ struct SettingsView: View {
                 HStack {
                     Text("Photos tracked")
                     Spacer()
-                    Text("\(appState.tracker.totalTracked)")
+                    Text("\(appState.trackedPhotoCount)")
                         .foregroundColor(.secondary)
                 }
             } header: {

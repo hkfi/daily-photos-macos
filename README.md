@@ -62,13 +62,13 @@ make install  # Build and install to ~/Applications
 make clean    # Remove build artifacts
 ```
 
-If [xcodegen](https://github.com/yonaskolb/XcodeGen) is installed (`brew install xcodegen`), the build uses `xcodebuild` with the generated Xcode project. Otherwise it falls back to direct `swiftc` compilation.
+If [xcodegen](https://github.com/yonaskolb/XcodeGen) is installed (`brew install xcodegen`), the build uses the generated Xcode project, which is also the supported path for running tests. Without `xcodegen`, the repo falls back to a best-effort `swiftc` app build.
 
 ## Releasing
 
 To publish a new version:
 
-1. Update the version in `project.yml` (`MARKETING_VERSION`) and `Resources/Info.plist` (`CFBundleShortVersionString`)
+1. Update the version in `project.yml` (`MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`)
 2. Commit and push
 3. Tag and push:
    ```bash

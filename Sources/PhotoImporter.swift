@@ -103,6 +103,18 @@ class PhotoImporter {
 
     /// Export a single PHAsset to the target directory.
     /// Returns the filename and full path of the exported file.
+    func plannedFilename(for asset: PHAsset, asJpeg: Bool) throws -> String {
+        let resources = PHAssetResource.assetResources(for: asset)
+        guard let primaryResource = resources.first else {
+            throw ImportError.noResource
+        }
+
+        let originalFilename = primaryResource.originalFilename
+        let baseName = (originalFilename as NSString).deletingPathExtension
+        let ext = asJpeg ? "jpg" : (originalFilename as NSString).pathExtension
+        return "\(baseName).\(ext)"
+    }
+
     func exportPhoto(
         _ asset: PHAsset,
         to directory: String,
@@ -115,9 +127,9 @@ class PhotoImporter {
             throw ImportError.noResource
         }
 
-        let originalFilename = primaryResource.originalFilename
-        let baseName = (originalFilename as NSString).deletingPathExtension
-        let ext = asJpeg ? "jpg" : (originalFilename as NSString).pathExtension
+        let plannedFilename = try plannedFilename(for: asset, asJpeg: asJpeg)
+        let baseName = (plannedFilename as NSString).deletingPathExtension
+        let ext = (plannedFilename as NSString).pathExtension
 
         // Handle filename collisions
         let filename = uniqueFilename(base: baseName, ext: ext, in: directory)
