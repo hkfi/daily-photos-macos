@@ -18,13 +18,16 @@ jobs:
       - name: Install xcodegen
         run: brew install xcodegen
 
+      - name: Run tests
+        run: make test
+
       - name: Build
         run: ./build.sh
 
       - name: Zip app bundle
         run: |
           cd .build
-          zip -r DailyPhotos.app.zip DailyPhotos.app
+          ditto -c -k --sequesterRsrc --keepParent DailyPhotos.app DailyPhotos.app.zip
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

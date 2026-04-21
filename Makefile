@@ -1,4 +1,4 @@
-.PHONY: build install run uninstall clean release
+.PHONY: build install test run uninstall clean release
 
 APP_NAME   := DailyPhotos
 BUILD_DIR  := .build
@@ -9,13 +9,23 @@ build:
 	@./build.sh
 
 install: build
-	@mkdir -p "$(INSTALL_DIR)"
-	@rm -rf "$(INSTALL_DIR)/$(APP_NAME).app"
-	@cp -R "$(APP_BUNDLE)" "$(INSTALL_DIR)/$(APP_NAME).app"
-	@echo "✅ Installed to $(INSTALL_DIR)/$(APP_NAME).app"
-	@echo ""
-	@echo "Launch from Spotlight or run:  open ~/Applications/DailyPhotos.app"
-	@echo "Auto-start: System Settings → General → Login Items → add DailyPhotos"
+	@./build.sh install
+
+test:
+	@if ! command -v xcodegen >/dev/null 2>&1; then \
+		echo "❌ xcodegen is required to run tests."; \
+		echo "   Install with: brew install xcodegen"; \
+		exit 1; \
+	fi
+	@xcodegen generate --quiet
+	@xcodebuild \
+		-project "$(APP_NAME).xcodeproj" \
+		-scheme "$(APP_NAME)" \
+		-destination "platform=macOS" \
+		-derivedDataPath "$(BUILD_DIR)/derived-tests" \
+		CLANG_MODULE_CACHE_PATH="$(BUILD_DIR)/module-cache-tests" \
+		test \
+		-quiet
 
 run: build
 	@open "$(APP_BUNDLE)"

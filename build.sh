@@ -16,6 +16,7 @@ APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
 INSTALL_DIR="$HOME/Applications"
 MODULE_CACHE_DIR="$(pwd)/$BUILD_DIR/module-cache"
 ARCH="$(uname -m)"
+DITTO="/usr/bin/ditto"
 
 echo "🔧 Building $APP_NAME..."
 
@@ -47,7 +48,7 @@ if command -v xcodegen &>/dev/null; then
     BUILT_APP=$(find "$BUILD_DIR/derived" -name "$APP_NAME.app" -type d | head -1)
     mkdir -p "$BUILD_DIR"
     rm -rf "$APP_BUNDLE"
-    cp -R "$BUILT_APP" "$APP_BUNDLE"
+    "$DITTO" "$BUILT_APP" "$APP_BUNDLE"
 
 else
     echo "📦 Building with swiftc (no xcodegen found)..."
@@ -103,7 +104,7 @@ case "${1:-}" in
     install)
         mkdir -p "$INSTALL_DIR"
         rm -rf "$INSTALL_DIR/$APP_NAME.app"
-        cp -R "$APP_BUNDLE" "$INSTALL_DIR/$APP_NAME.app"
+        "$DITTO" "$APP_BUNDLE" "$INSTALL_DIR/$APP_NAME.app"
         echo "📂 Installed to $INSTALL_DIR/$APP_NAME.app"
         echo ""
         echo "   To launch: open ~/'Applications/DailyPhotos.app'"

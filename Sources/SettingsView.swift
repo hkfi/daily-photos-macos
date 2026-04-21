@@ -7,6 +7,49 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            Section {
+                HStack(alignment: .center, spacing: 12) {
+                    Image(systemName: appState.updater.updateAvailable ? "arrow.down.circle.fill" : "photo.on.rectangle.angled")
+                        .font(.system(size: 28))
+                        .foregroundColor(appState.updater.updateAvailable ? .orange : .accentColor)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Daily Photos \(appState.updater.currentVersion)")
+                            .font(.headline)
+
+                        Text(updateSummary)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    if appState.updater.isUpdating {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else if appState.updater.isChecking {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else if appState.updater.updateAvailable {
+                        Button("Install Update") {
+                            Task { await appState.updater.downloadAndInstall() }
+                        }
+                    } else {
+                        Button("Check Now") {
+                            Task { await appState.updater.checkForUpdates() }
+                        }
+                    }
+                }
+
+                if let error = appState.updater.updateError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+            } header: {
+                Text("App")
+            }
+
             // ── Vault location ──
             Section {
                 HStack {
@@ -89,53 +132,9 @@ struct SettingsView: View {
                 Text("Status")
             }
 
-            // ── About ──
-            Section {
-                HStack {
-                    Text("Version")
-                    Spacer()
-                    Text(appState.updater.currentVersion)
-                        .foregroundColor(.secondary)
-                }
-
-                HStack {
-                    if appState.updater.updateAvailable, let version = appState.updater.latestVersion {
-                        Label("v\(version) available", systemImage: "arrow.down.circle.fill")
-                            .foregroundColor(.orange)
-                        Spacer()
-                        if appState.updater.isUpdating {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                        } else {
-                            Button("Install & Relaunch") {
-                                Task { await appState.updater.downloadAndInstall() }
-                            }
-                        }
-                    } else {
-                        Text("Updates")
-                        Spacer()
-                        if appState.updater.isChecking {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                        } else {
-                            Button("Check for Updates") {
-                                Task { await appState.updater.checkForUpdates() }
-                            }
-                        }
-                    }
-                }
-
-                if let error = appState.updater.updateError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
-            } header: {
-                Text("About")
-            }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 540)
+        .frame(width: 420, height: 620)
     }
 
     private func chooseVaultFolder() {
@@ -153,6 +152,22 @@ struct SettingsView: View {
 
     private func abbreviatePath(_ path: String) -> String {
         path.replacingOccurrences(of: NSHomeDirectory(), with: "~")
+    }
+
+    private var updateSummary: String {
+        if let version = appState.updater.latestVersion, appState.updater.updateAvailable {
+            return "Version \(version) is ready to install."
+        }
+
+        if appState.updater.isUpdating {
+            return "Installing the latest release…"
+        }
+
+        if appState.updater.isChecking {
+            return "Checking GitHub Releases…"
+        }
+
+        return "Version and update controls live here."
     }
 }
 

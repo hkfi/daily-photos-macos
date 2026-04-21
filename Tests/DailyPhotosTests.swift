@@ -165,13 +165,16 @@ final class DailyPhotosTests: XCTestCase {
 
     func testImportTrackerMigratesLegacyRecords() throws {
         let trackerURL = try makeTemporaryDirectory().appendingPathComponent("tracker.json")
+        let importedAt = "2026-04-15T12:00:00Z"
         let legacy = [
-            "asset-1": ["vaultPath": "/Vault/Photos/2026-04-15/IMG_0001.jpg", "importedAt": "2026-04-15T12:00:00Z"]
+            "asset-1": ["vaultPath": "/Vault/Photos/2026-04-15/IMG_0001.jpg", "importedAt": importedAt]
         ]
         let data = try JSONSerialization.data(withJSONObject: legacy, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: trackerURL)
 
-        let tracker = ImportTracker(storageURL: trackerURL, now: { Date(timeIntervalSince1970: 2_000_000_000) })
+        let formatter = ISO8601DateFormatter()
+        let currentDate = formatter.date(from: "2026-05-01T12:00:00Z")!
+        let tracker = ImportTracker(storageURL: trackerURL, now: { currentDate })
 
         XCTAssertTrue(
             tracker.hasBeenImported(
