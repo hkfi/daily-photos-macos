@@ -43,35 +43,11 @@ class PhotoImporter {
 
     /// Fetch all photos taken today from the user's Photos library.
     func fetchTodaysPhotos() async throws -> [PHAsset] {
-        guard await requestAccess() else {
-            throw ImportError.notAuthorized
-        }
-
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-
-        let options = PHFetchOptions()
-        options.predicate = NSPredicate(
-            format: "creationDate >= %@ AND creationDate < %@ AND mediaType == %d",
-            startOfDay as NSDate,
-            endOfDay as NSDate,
-            PHAssetMediaType.image.rawValue
-        )
-        options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
-
-        let results = PHAsset.fetchAssets(with: options)
-
-        var assets: [PHAsset] = []
-        results.enumerateObjects { asset, _, _ in
-            assets.append(asset)
-        }
-
-        return assets
+        try await fetchPhotos(for: Date(), filters: .default)
     }
 
     /// Fetch photos for a specific date (for manual imports of past days).
-    func fetchPhotos(for date: Date) async throws -> [PHAsset] {
+    func fetchPhotos(for date: Date, filters: ImportFilters = .default) async throws -> [PHAsset] {
         guard await requestAccess() else {
             throw ImportError.notAuthorized
         }
@@ -81,11 +57,9 @@ class PhotoImporter {
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
         let options = PHFetchOptions()
-        options.predicate = NSPredicate(
-            format: "creationDate >= %@ AND creationDate < %@ AND mediaType == %d",
-            startOfDay as NSDate,
-            endOfDay as NSDate,
-            PHAssetMediaType.image.rawValue
+        options.predicate = Self.makeFetchPredicate(
+            startOfDay: startOfDay,
+            endOfDay: endOfDay
         )
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
 
@@ -94,7 +68,42 @@ class PhotoImporter {
         results.enumerateObjects { asset, _, _ in
             assets.append(asset)
         }
-        return assets
+        return Self.applyFilters(filters, to: assets)
+    }
+
+    static func makeFetchPredicate(
+        startOfDay: Date,
+        endOfDay: Date
+    ) -> NSPredicate {
+        let clauses = [
+            "creationDate >= %@",
+            "creationDate < %@",
+            "mediaType == %d"
+        ]
+        let arguments: [Any] = [
+            startOfDay as NSDate,
+            endOfDay as NSDate,
+            PHAssetMediaType.image.rawValue
+        ]
+
+        return NSPredicate(
+            format: clauses.joined(separator: " AND "),
+            argumentArray: arguments
+        )
+    }
+
+    private static func applyFilters(_ filters: ImportFilters, to assets: [PHAsset]) -> [PHAsset] {
+        assets.filter { asset in
+            if filters.favoritesOnly, !asset.isFavorite {
+                return false
+            }
+
+            if filters.excludeScreenshots, asset.mediaSubtypes.contains(.photoScreenshot) {
+                return false
+            }
+
+            return true
+        }
     }
 
     // ────────────────────────────────────────────

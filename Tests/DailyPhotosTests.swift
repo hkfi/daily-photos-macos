@@ -134,7 +134,8 @@ final class DailyPhotosTests: XCTestCase {
             convertToJpeg: true,
             appendToDailyNote: true,
             dailyNotePathTemplate: "Journal/{{year}}/{{date}}.md",
-            dailyNoteHeading: "## Camera Roll"
+            dailyNoteHeading: "## Camera Roll",
+            filters: .default
         )
         let date = ISO8601DateFormatter().date(from: "2026-04-15T12:00:00Z")!
 
@@ -329,6 +330,47 @@ final class DailyPhotosTests: XCTestCase {
     }
 
     @MainActor
+    func testAppStateForwardsImportFiltersToCoordinator() async {
+        let defaults = makeUserDefaults()
+        let coordinator = FakeImportCoordinator()
+        await coordinator.setResult(
+            ImportRunResult(
+                importedFilenames: [],
+                importedCount: 0,
+                statusSummary: "No new photos",
+                warnings: []
+            )
+        )
+
+        let appState = AppState(
+            defaults: defaults,
+            importCoordinator: coordinator,
+            updater: Updater(),
+            startBackgroundTasks: false
+        )
+        appState.vaultPath = "/Vault"
+        appState.favoritesOnly = true
+        appState.excludeScreenshots = true
+
+        await appState.runImport()
+
+        let settings = await coordinator.lastSettingsValue()
+        XCTAssertEqual(settings?.filters, ImportFilters(favoritesOnly: true, excludeScreenshots: true))
+    }
+
+    func testPhotoImporterBuildsBaseDateImagePredicate() {
+        let startDate = ISO8601DateFormatter().date(from: "2026-04-15T00:00:00Z")!
+        let endDate = ISO8601DateFormatter().date(from: "2026-04-16T00:00:00Z")!
+        let predicate = PhotoImporter.makeFetchPredicate(
+            startOfDay: startDate,
+            endOfDay: endDate
+        )
+
+        XCTAssertTrue(predicate.predicateFormat.contains("creationDate"))
+        XCTAssertTrue(predicate.predicateFormat.contains("mediaType"))
+    }
+
+    @MainActor
     func testAppStateNoNewPhotosClearsImportingState() async {
         let defaults = makeUserDefaults()
         let coordinator = FakeImportCoordinator()
@@ -436,6 +478,7 @@ private enum TestError: LocalizedError {
 private actor FakeImportCoordinator: ImportCoordinating {
     private(set) var invocationCount = 0
     private var lastDateRange: ImportDateRange?
+    private var lastSettings: ImportSettings?
     private var trackedCountValue = 0
     private var result = ImportRunResult(
         importedFilenames: [],
@@ -457,6 +500,7 @@ private actor FakeImportCoordinator: ImportCoordinating {
         progress: @escaping @Sendable (String) async -> Void
     ) async throws -> ImportRunResult {
         invocationCount += 1
+        lastSettings = settings
         lastDateRange = dateRange
         await progress("Checking for new photos…")
 
@@ -506,5 +550,9 @@ private actor FakeImportCoordinator: ImportCoordinating {
 
     func lastDateRangeValue() -> ImportDateRange? {
         lastDateRange
+    }
+
+    func lastSettingsValue() -> ImportSettings? {
+        lastSettings
     }
 }

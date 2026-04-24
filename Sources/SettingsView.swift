@@ -98,6 +98,12 @@ struct SettingsView: View {
 
                 Toggle("Convert HEIC → JPEG", isOn: $appState.convertToJpeg)
                     .tint(.accentColor)
+
+                Toggle("Favorites only", isOn: $appState.favoritesOnly)
+                    .tint(.accentColor)
+
+                Toggle("Exclude screenshots", isOn: $appState.excludeScreenshots)
+                    .tint(.accentColor)
             } header: {
                 Text("Import behavior")
             }

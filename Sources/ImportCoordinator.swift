@@ -6,6 +6,16 @@ enum ImportOutputFormat: String, Codable, Sendable {
     case original
 }
 
+struct ImportFilters: Sendable, Equatable {
+    let favoritesOnly: Bool
+    let excludeScreenshots: Bool
+
+    static let `default` = ImportFilters(
+        favoritesOnly: false,
+        excludeScreenshots: false
+    )
+}
+
 struct ImportSettings: Sendable {
     let vaultPath: String
     let photoSubfolder: String
@@ -14,6 +24,7 @@ struct ImportSettings: Sendable {
     let appendToDailyNote: Bool
     let dailyNotePathTemplate: String
     let dailyNoteHeading: String
+    let filters: ImportFilters
 
     var outputFormat: ImportOutputFormat {
         convertToJpeg ? .jpeg : .original
@@ -140,7 +151,7 @@ actor ImportCoordinator: ImportCoordinating {
                 await progress("Checking \(dateString) (\(dayIndex + 1)/\(days.count))…")
             }
 
-            let photos = try await importer.fetchPhotos(for: day)
+            let photos = try await importer.fetchPhotos(for: day, filters: settings.filters)
             let candidates = try photos.compactMap { asset -> PlannedImport? in
                 let plannedFilename = try importer.plannedFilename(for: asset, asJpeg: settings.convertToJpeg)
                 let relativePath = (targetSubfolder as NSString).appendingPathComponent(plannedFilename)

@@ -42,6 +42,14 @@ final class AppState: ObservableObject {
         didSet { defaults.set(convertToJpeg, forKey: "convertToJpeg") }
     }
 
+    @Published var favoritesOnly: Bool {
+        didSet { defaults.set(favoritesOnly, forKey: "favoritesOnly") }
+    }
+
+    @Published var excludeScreenshots: Bool {
+        didSet { defaults.set(excludeScreenshots, forKey: "excludeScreenshots") }
+    }
+
     @Published var appendToDailyNote: Bool {
         didSet { defaults.set(appendToDailyNote, forKey: "appendToDailyNote") }
     }
@@ -79,6 +87,8 @@ final class AppState: ObservableObject {
         self.photoSubfolder = defaults.string(forKey: "photoSubfolder") ?? "Photos/{{date}}"
         self.dateFormat = defaults.string(forKey: "dateFormat") ?? "yyyy-MM-dd"
         self.convertToJpeg = defaults.object(forKey: "convertToJpeg") as? Bool ?? true
+        self.favoritesOnly = defaults.bool(forKey: "favoritesOnly")
+        self.excludeScreenshots = defaults.bool(forKey: "excludeScreenshots")
         self.appendToDailyNote = defaults.object(forKey: "appendToDailyNote") as? Bool ?? true
         self.dailyNotePathTemplate = defaults.string(forKey: "dailyNotePathTemplate")
             ?? "\(defaults.string(forKey: "dailyNotesSubfolder") ?? "Daily Notes")/{{date}}.md"
@@ -124,7 +134,11 @@ final class AppState: ObservableObject {
             convertToJpeg: convertToJpeg,
             appendToDailyNote: appendToDailyNote,
             dailyNotePathTemplate: dailyNotePathTemplate,
-            dailyNoteHeading: dailyNoteHeading
+            dailyNoteHeading: dailyNoteHeading,
+            filters: ImportFilters(
+                favoritesOnly: favoritesOnly,
+                excludeScreenshots: excludeScreenshots
+            )
         )
         let resolvedDateRange = dateRange ?? .single(Date())
         let updateStatus: @Sendable (String) async -> Void = { [self] message in

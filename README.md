@@ -7,6 +7,7 @@ A macOS menu bar app that automatically imports photos from your Apple Photos li
 - **Auto-import** — Periodically checks for new photos and copies them to your vault
 - **Backfill imports** — Manually import yesterday or a custom date range
 - **Configurable intervals** — 5 min to 2 hours
+- **Import filters** — Optionally import favorites only or skip screenshots
 - **HEIC to JPEG conversion** — Optional, on by default
 - **Daily note integration** — Appends `![[photo]]` embeds to your Obsidian daily note with configurable note paths and section headings
 - **Date-based folders** — Organize photos into `Photos/2025-01-15/` subfolders (customizable with `{{date}}` template)
