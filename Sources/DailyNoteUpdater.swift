@@ -6,23 +6,22 @@ struct DailyNoteUpdateResult {
 }
 
 struct DailyNoteUpdater {
-    private let heading = "## Photos"
-
     func appendPhotos(
         filenames: [String],
         settings: ImportSettings,
-        dateString: String
+        date: Date
     ) throws -> DailyNoteUpdateResult {
-        let noteDirectory = (settings.vaultPath as NSString).appendingPathComponent(settings.dailyNotesSubfolder)
-        let notePath = (noteDirectory as NSString).appendingPathComponent("\(dateString).md")
+        let relativeNotePath = settings.resolvedDailyNotePath(for: date)
+        let notePath = (settings.vaultPath as NSString).appendingPathComponent(relativeNotePath)
 
         guard FileManager.default.fileExists(atPath: notePath) else {
             return DailyNoteUpdateResult(didWrite: false, warning: nil)
         }
 
         let existing = try String(contentsOfFile: notePath, encoding: .utf8)
-        let photoSubfolder = settings.resolvedPhotoSubfolder(for: dateString)
+        let photoSubfolder = settings.resolvedPhotoSubfolder(for: date)
         let embeds = filenames.map { "![[\(photoSubfolder)/\($0)]]" }
+        let heading = settings.dailyNoteHeading.isEmpty ? "## Photos" : settings.dailyNoteHeading
         let updated = Self.upsertPhotoSection(in: existing, embeds: embeds, heading: heading)
 
         guard updated != existing else {

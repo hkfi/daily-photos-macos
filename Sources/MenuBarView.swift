@@ -151,6 +151,21 @@ struct MenuBarView: View {
                 .disabled(appState.isImporting)
                 .keyboardShortcut("i", modifiers: .command)
 
+                Button {
+                    let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+                    Task { await appState.runImport(dateRange: .single(yesterday)) }
+                } label: {
+                    HStack {
+                        Image(systemName: "calendar.badge.clock")
+                        Text("Import Yesterday")
+                        Spacer()
+                    }
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 16)
+                }
+                .buttonStyle(.plain)
+                .disabled(appState.isImporting)
+
                 // Toggle auto-import
                 Button {
                     appState.autoImportEnabled.toggle()

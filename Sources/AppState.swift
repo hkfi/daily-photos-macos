@@ -34,6 +34,10 @@ final class AppState: ObservableObject {
         didSet { defaults.set(photoSubfolder, forKey: "photoSubfolder") }
     }
 
+    @Published var dateFormat: String {
+        didSet { defaults.set(dateFormat, forKey: "dateFormat") }
+    }
+
     @Published var convertToJpeg: Bool {
         didSet { defaults.set(convertToJpeg, forKey: "convertToJpeg") }
     }
@@ -42,8 +46,12 @@ final class AppState: ObservableObject {
         didSet { defaults.set(appendToDailyNote, forKey: "appendToDailyNote") }
     }
 
-    @Published var dailyNotesSubfolder: String {
-        didSet { defaults.set(dailyNotesSubfolder, forKey: "dailyNotesSubfolder") }
+    @Published var dailyNotePathTemplate: String {
+        didSet { defaults.set(dailyNotePathTemplate, forKey: "dailyNotePathTemplate") }
+    }
+
+    @Published var dailyNoteHeading: String {
+        didSet { defaults.set(dailyNoteHeading, forKey: "dailyNoteHeading") }
     }
 
     @Published var hasVaultAccess: Bool = false
@@ -69,9 +77,12 @@ final class AppState: ObservableObject {
         self.intervalMinutes = defaults.object(forKey: "intervalMinutes") as? Int ?? 30
         self.vaultPath = defaults.string(forKey: "vaultPath") ?? ""
         self.photoSubfolder = defaults.string(forKey: "photoSubfolder") ?? "Photos/{{date}}"
+        self.dateFormat = defaults.string(forKey: "dateFormat") ?? "yyyy-MM-dd"
         self.convertToJpeg = defaults.object(forKey: "convertToJpeg") as? Bool ?? true
         self.appendToDailyNote = defaults.object(forKey: "appendToDailyNote") as? Bool ?? true
-        self.dailyNotesSubfolder = defaults.string(forKey: "dailyNotesSubfolder") ?? "Daily Notes"
+        self.dailyNotePathTemplate = defaults.string(forKey: "dailyNotePathTemplate")
+            ?? "\(defaults.string(forKey: "dailyNotesSubfolder") ?? "Daily Notes")/{{date}}.md"
+        self.dailyNoteHeading = defaults.string(forKey: "dailyNoteHeading") ?? "## Photos"
 
         self.hasVaultAccess = restoreVaultBookmark()
 
@@ -92,7 +103,7 @@ final class AppState: ObservableObject {
         timer?.invalidate()
     }
 
-    func runImport() async {
+    func runImport(dateRange: ImportDateRange? = nil) async {
         guard !vaultPath.isEmpty else {
             statusMessage = "No vault path set"
             return
@@ -109,10 +120,13 @@ final class AppState: ObservableObject {
         let settings = ImportSettings(
             vaultPath: vaultPath,
             photoSubfolder: photoSubfolder,
+            dateFormat: dateFormat,
             convertToJpeg: convertToJpeg,
             appendToDailyNote: appendToDailyNote,
-            dailyNotesSubfolder: dailyNotesSubfolder
+            dailyNotePathTemplate: dailyNotePathTemplate,
+            dailyNoteHeading: dailyNoteHeading
         )
+        let resolvedDateRange = dateRange ?? .single(Date())
         let updateStatus: @Sendable (String) async -> Void = { [self] message in
             await MainActor.run {
                 statusMessage = message
@@ -122,7 +136,11 @@ final class AppState: ObservableObject {
         defer { isImporting = false }
 
         do {
-            let result = try await importCoordinator.runImport(settings: settings, progress: updateStatus)
+            let result = try await importCoordinator.runImport(
+                settings: settings,
+                dateRange: resolvedDateRange,
+                progress: updateStatus
+            )
 
             if result.importedCount > 0 {
                 let timestamp = Date()

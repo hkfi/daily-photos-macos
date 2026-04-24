@@ -5,9 +5,10 @@ A macOS menu bar app that automatically imports photos from your Apple Photos li
 ## Features
 
 - **Auto-import** — Periodically checks for new photos and copies them to your vault
+- **Backfill imports** — Manually import yesterday or a custom date range
 - **Configurable intervals** — 5 min to 2 hours
 - **HEIC to JPEG conversion** — Optional, on by default
-- **Daily note integration** — Appends `![[photo]]` embeds to your Obsidian daily note
+- **Daily note integration** — Appends `![[photo]]` embeds to your Obsidian daily note with configurable note paths and section headings
 - **Date-based folders** — Organize photos into `Photos/2025-01-15/` subfolders (customizable with `{{date}}` template)
 - **Duplicate tracking** — Remembers imported photos so they're never copied twice
 - **iCloud support** — Downloads photos from iCloud when needed
@@ -44,8 +45,10 @@ To launch on login: **System Settings > General > Login Items > add DailyPhotos*
 
 1. Click the photo icon in the menu bar
 2. On first launch, you'll be prompted to select your Obsidian vault folder
-3. Configure import settings (interval, JPEG conversion, daily note) in **Settings**
+3. Configure import settings (interval, JPEG conversion, date format, daily note path) in **Settings**
 4. The app runs in the background and imports new photos automatically
+
+Use **Import Yesterday** from the menu bar for a quick backfill, or **Settings > Backfill** to import a custom date range. Photo folders and daily note paths support `{{date}}`, `{{year}}`, `{{month}}`, and `{{day}}`; `{{date}}` uses the configured date format.
 
 ## Updating
 

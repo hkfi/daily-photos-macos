@@ -4,6 +4,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
+    @State private var backfillStartDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+    @State private var backfillEndDate = Date()
 
     var body: some View {
         Form {
@@ -74,9 +76,7 @@ struct SettingsView: View {
                 }
 
                 TextField("Photo subfolder", text: $appState.photoSubfolder)
-                Text("Use {{date}} for today's date. E.g. Photos/{{date}}")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                TextField("Date format", text: $appState.dateFormat)
             } header: {
                 Text("Where to save photos")
             }
@@ -108,11 +108,36 @@ struct SettingsView: View {
                     .tint(.accentColor)
 
                 if appState.appendToDailyNote {
-                    TextField("Notes subfolder", text: $appState.dailyNotesSubfolder)
+                    TextField("Note path", text: $appState.dailyNotePathTemplate)
+                        .font(.callout)
+
+                    TextField("Section heading", text: $appState.dailyNoteHeading)
                         .font(.callout)
                 }
             } header: {
                 Text("Daily note")
+            }
+
+            // ── Backfill ──
+            Section {
+                DatePicker("From", selection: $backfillStartDate, displayedComponents: .date)
+                DatePicker("To", selection: $backfillEndDate, displayedComponents: .date)
+
+                Button {
+                    Task {
+                        await appState.runImport(
+                            dateRange: ImportDateRange(
+                                startDate: backfillStartDate,
+                                endDate: backfillEndDate
+                            )
+                        )
+                    }
+                } label: {
+                    Text(appState.isImporting ? "Importing…" : "Import Date Range")
+                }
+                .disabled(appState.isImporting || appState.vaultPath.isEmpty)
+            } header: {
+                Text("Backfill")
             }
 
             // ── Status ──
@@ -134,7 +159,7 @@ struct SettingsView: View {
 
         }
         .formStyle(.grouped)
-        .frame(width: 420, height: 620)
+        .frame(width: 420, height: 720)
     }
 
     private func chooseVaultFolder() {

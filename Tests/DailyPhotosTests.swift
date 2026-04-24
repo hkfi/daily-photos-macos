@@ -115,6 +115,40 @@ final class DailyPhotosTests: XCTestCase {
         XCTAssertEqual(updated.components(separatedBy: "## Tasks").count - 1, 1)
     }
 
+    func testDailyNoteUpdaterUsesCustomPathTemplateAndHeading() throws {
+        let vaultURL = try makeTemporaryDirectory()
+        let noteURL = vaultURL
+            .appendingPathComponent("Journal", isDirectory: true)
+            .appendingPathComponent("2026", isDirectory: true)
+            .appendingPathComponent("2026-04-15.md")
+        try FileManager.default.createDirectory(
+            at: noteURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try "# Daily Note\n".write(to: noteURL, atomically: true, encoding: .utf8)
+
+        let settings = ImportSettings(
+            vaultPath: vaultURL.path,
+            photoSubfolder: "Media/{{date}}",
+            dateFormat: "yyyy-MM-dd",
+            convertToJpeg: true,
+            appendToDailyNote: true,
+            dailyNotePathTemplate: "Journal/{{year}}/{{date}}.md",
+            dailyNoteHeading: "## Camera Roll"
+        )
+        let date = ISO8601DateFormatter().date(from: "2026-04-15T12:00:00Z")!
+
+        _ = try DailyNoteUpdater().appendPhotos(
+            filenames: ["IMG_0001.jpg"],
+            settings: settings,
+            date: date
+        )
+
+        let updated = try String(contentsOf: noteURL, encoding: .utf8)
+        XCTAssertTrue(updated.contains("## Camera Roll"))
+        XCTAssertTrue(updated.contains("![[Media/2026-04-15/IMG_0001.jpg]]"))
+    }
+
     func testImportTrackerTreatsSameAssetAndDestinationAsImported() throws {
         let trackerURL = try makeTemporaryDirectory().appendingPathComponent("tracker.json")
         let tracker = ImportTracker(storageURL: trackerURL, now: { Date(timeIntervalSince1970: 1_000) })
@@ -266,6 +300,35 @@ final class DailyPhotosTests: XCTestCase {
     }
 
     @MainActor
+    func testAppStateForwardsDateRangeToCoordinator() async {
+        let defaults = makeUserDefaults()
+        let coordinator = FakeImportCoordinator()
+        await coordinator.setResult(
+            ImportRunResult(
+                importedFilenames: [],
+                importedCount: 0,
+                statusSummary: "No new photos",
+                warnings: []
+            )
+        )
+
+        let appState = AppState(
+            defaults: defaults,
+            importCoordinator: coordinator,
+            updater: Updater(),
+            startBackgroundTasks: false
+        )
+        appState.vaultPath = "/Vault"
+
+        let startDate = ISO8601DateFormatter().date(from: "2026-04-10T12:00:00Z")!
+        let endDate = ISO8601DateFormatter().date(from: "2026-04-15T12:00:00Z")!
+        await appState.runImport(dateRange: ImportDateRange(startDate: startDate, endDate: endDate))
+
+        let recordedRange = await coordinator.lastDateRangeValue()
+        XCTAssertEqual(recordedRange, ImportDateRange(startDate: startDate, endDate: endDate))
+    }
+
+    @MainActor
     func testAppStateNoNewPhotosClearsImportingState() async {
         let defaults = makeUserDefaults()
         let coordinator = FakeImportCoordinator()
@@ -372,6 +435,7 @@ private enum TestError: LocalizedError {
 
 private actor FakeImportCoordinator: ImportCoordinating {
     private(set) var invocationCount = 0
+    private var lastDateRange: ImportDateRange?
     private var trackedCountValue = 0
     private var result = ImportRunResult(
         importedFilenames: [],
@@ -389,9 +453,11 @@ private actor FakeImportCoordinator: ImportCoordinating {
 
     func runImport(
         settings: ImportSettings,
+        dateRange: ImportDateRange,
         progress: @escaping @Sendable (String) async -> Void
     ) async throws -> ImportRunResult {
         invocationCount += 1
+        lastDateRange = dateRange
         await progress("Checking for new photos…")
 
         if shouldSuspend {
@@ -436,5 +502,9 @@ private actor FakeImportCoordinator: ImportCoordinating {
 
     func invocationCountValue() -> Int {
         invocationCount
+    }
+
+    func lastDateRangeValue() -> ImportDateRange? {
+        lastDateRange
     }
 }
