@@ -144,8 +144,7 @@ struct MenuBarView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 16)
+                    .menuActionRow()
                 }
                 .buttonStyle(.plain)
                 .disabled(appState.isImporting)
@@ -160,8 +159,7 @@ struct MenuBarView: View {
                         Text("Import Yesterday")
                         Spacer()
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 16)
+                    .menuActionRow()
                 }
                 .buttonStyle(.plain)
                 .disabled(appState.isImporting)
@@ -175,8 +173,7 @@ struct MenuBarView: View {
                         Text(appState.autoImportEnabled ? "Pause Auto-Import" : "Resume Auto-Import")
                         Spacer()
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 16)
+                    .menuActionRow()
                 }
                 .buttonStyle(.plain)
 
@@ -190,8 +187,7 @@ struct MenuBarView: View {
                             Text(appState.updater.isChecking ? "Checking…" : "Check for Updates")
                             Spacer()
                         }
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 16)
+                        .menuActionRow()
                     }
                     .buttonStyle(.plain)
                     .disabled(appState.updater.isChecking)
@@ -212,8 +208,7 @@ struct MenuBarView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 16)
+                    .menuActionRow()
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut(",", modifiers: .command)
@@ -230,21 +225,53 @@ struct MenuBarView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 16)
+                    .menuActionRow()
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut("q", modifiers: .command)
             }
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(width: 300)
         .padding(.bottom, 8)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+        }
     }
 
     private var statusColor: Color {
         if appState.isImporting { return .orange }
         if appState.autoImportEnabled { return .green }
         return .gray
+    }
+}
+
+private struct MenuActionRowModifier: ViewModifier {
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var isHovered = false
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.vertical, 4)
+            .padding(.horizontal, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(isHovered && isEnabled ? Color.accentColor.opacity(0.18) : Color.clear)
+            }
+            .onHover { isHovered = $0 }
+            .animation(.easeOut(duration: 0.08), value: isHovered)
+    }
+}
+
+private extension View {
+    func menuActionRow() -> some View {
+        modifier(MenuActionRowModifier())
     }
 }
